@@ -23,7 +23,6 @@ poetry update
 And run it, providing your [Pinboard API token](https://pinboard.in/settings/password)
 
 ```
-cd pblca
 poetry run pblca --token USERNAME:API_TOKEN
 ```
 
