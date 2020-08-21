@@ -1,7 +1,7 @@
 # Pinboard Link Checker and Archiver (PBLCA)
 Lately I have become increasingly worried about the problem of [link rot](https://www.gwern.net/Archiving-URLs). I've been using [Pinboard](https://pinboard.in) for more than 5 years, and I have over 1200 bookmarks, so out of curiosity I decided to check how many of these links were dead. The result was that more than 5% of the links didn't exist any more, or redirected to a 403 page. Since I have been continously adding bookmarks over this time, this means that the link rot rate is (significantly) larger than 5% per 5 years.
 
-I've also added the option to look for the closest snapshot (to the bookmark creation date) of the dead link in the [internet archive](archive.org) and update the bookmark to redirect to it. If no snapshot exists, the script will ask you whether you want to delete the bookmark or keep it.
+I've also added the option to look for the closest snapshot (to the bookmark creation date) of the dead link in the [internet archive](https://archive.org) and update the bookmark to redirect to it. If no snapshot exists, the script will ask you whether you want to delete the bookmark or keep it.
 
 PBLCA uses multiprocessing to query all your bookmarks, so it should be relatively fast. Checking 1250 of my bookmarks takes around 6 minutes.
 
