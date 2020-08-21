@@ -69,7 +69,6 @@ def process_roten_links(roten_links):
         description = bookmark.description
         url_request = "https://archive.org/wayback/available?"\
             f"url={url}&timestamp={timestamp}"
-        print(url_request)
         request = requests.get(url_request, headers=HEADERS)
         request_dict = json.loads(request.content)["archived_snapshots"]
         if "closest" in request_dict:
