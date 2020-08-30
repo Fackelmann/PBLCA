@@ -9,6 +9,7 @@ python = "^3.8"
 pinboard = "^2.1.8"
 requests = "^2.24.0"
 tqdm = "^4.48.2"
+mypy = "^0.782"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -19,3 +20,8 @@ pblca = "pblca.pblca:main"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[mypy]
+ignore_missing_imports = true
+ignore_errors = false
+disallow_untyped_defs = true
