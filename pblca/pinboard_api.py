@@ -19,12 +19,14 @@ class APIInitializationException(Exception):
 
 
 class PinboardAPI:
+    """Pinboard (pinboard.in) client API implementation.
 
+    :param token: Pinboard API token USER:TOKEN
+    """
     PINBOARD_API_ENDPOINT = "https://api.pinboard.in/v1"
 
-    def __init__(self, token: str, get_json: bool = True) -> None:
+    def __init__(self, token: str) -> None:
         self.token = token
-        self.get_json = get_json
         try:
             self.get_update()
         except APIAccessException as e:
@@ -33,8 +35,7 @@ class PinboardAPI:
 
     def _api_call(self, method: str, **params: str) -> Dict[str, str]:
         params["auth_token"] = self.token
-        if self.get_json is True:
-            params["format"] = "json"
+        params["format"] = "json"
         response = requests.get(f"{self.PINBOARD_API_ENDPOINT}{method}",
                                 params=params)
         if response.status_code == 200:
@@ -44,6 +45,9 @@ class PinboardAPI:
                                      f"status code ={response.status_code}")
 
     def get_update(self) -> Dict[str, str]:
+        """Return the most recent tima a bookmark was added, updated,
+        or deleted.
+        :returns: dictionary containing key "update time" """
         return self._api_call("/posts/update")
 
     def get_recent(self) -> Dict[str, str]:
