@@ -45,22 +45,30 @@ class PinboardAPI:
                                      f"status code ={response.status_code}")
 
     def get_update(self) -> Dict[str, str]:
-        """Return the most recent tima a bookmark was added, updated,
+        """Returns the most recent tima a bookmark was added, updated,
         or deleted.
         :returns: dictionary containing key "update time" """
         return self._api_call("/posts/update")
 
-    def get_recent(self) -> Dict[str, str]:
+    def get_recent_posts(self) -> Dict[str, str]:
+        """Returns the most recent time a bookmark was added, updated,
+        or deleted."""
         return self._api_call("/posts/recent")
 
     def get_all_posts(self) -> Dict[str, str]:
+        """Returns all bookmarks in the user's account."""
         return self._api_call("/posts/all")
 
-    def add_post(self, **params: str) -> dict:
+    def add_post(self, **params: str) -> Dict[str, str]:
+        """Adds a bookmark."""
         return self._api_call("/posts/add", **params)
 
     def delete_post(self, **params: str) -> dict:
+        """Deletes a bookmark."""
         return self._api_call("/posts/delete", **params)
 
     def get_post(self, **params: str) -> dict:
+        """Returns one or more posts on a single day matching the arguments.
+        If no date or url is given, date of most recentbookmark will be
+        used."""
         return self._api_call("/posts/get", **params)
