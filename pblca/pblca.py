@@ -3,14 +3,15 @@ Checks for dead links in your Pinboard bookmarks and provides the option to
 update them with an archive.org link or delete them.
 """
 import argparse
+from datetime import datetime
 import json
 from copy import deepcopy
 from multiprocessing import Pool
 
 import requests
-import pinboard
 from tqdm import tqdm
 
+from pblca import pinboard_api
 
 # We need an user agent so some HTTP servers are nice to us and let us in
 HEADERS = {"User-Agent":
@@ -31,42 +32,58 @@ def create_main_parser():
 def check_link(post):
     """Checks if whether link is dead or not."""
     try:
-        request = requests.get(post.url, timeout=10, headers=HEADERS)
+        request = requests.get(post["href"], timeout=10, headers=HEADERS)
         if request.status_code != 200:
             return post
-    except:
+    except Exception as e:
+        print(f"Exception {e} at post {post}")
         return post
     return None
 
 
-def update_archive_link(bookmark, ia_url):
+def create_add_parameters_from_bookmark(bookmark):
+    params = {}
+    params["url"] = bookmark["href"]
+    params["description"] = bookmark["description"]
+    params["extended"] = bookmark["extended"]
+    params["dt"] = bookmark["time"]
+    params["shared"] = bookmark["shared"]
+    params["toread"] = bookmark["toread"]
+    params["tags"] = bookmark["tags"]
+    return params
+
+
+def update_archive_link(bookmark, ia_url, pb_session):
     """Updates the link of a current bookmark to direct to the closest snapshot
     available in archive.org."""
-    #The save is ok as long as we update any field, except the URL. Since the
-    #URL acts as a key, modifying it will create a new bookmark.
-    #We went around this by saving the previous bookmark, and then deleting it.
-    old_bookmark = deepcopy(bookmark)
-    bookmark.url = ia_url
-    time = bookmark.time
-    bookmark.time = time
-    bookmark.save(update_time=True)
-    old_bookmark.delete()
+    old_bookmark_url = bookmark["href"]
+    params = create_add_parameters_from_bookmark(bookmark)
+    params["url"] = ia_url
+    pb_session.add_post(**params)
+    params = {"url": old_bookmark_url}
+    pb_session.delete_post(**params)
     print("Bookmark updated")
 
 
-def remove_bookmark(bookmark):
+def remove_bookmark(bookmark, pb_session):
     """Delete bookmark."""
-    bookmark.delete()
+    params = {"url": bookmark["href"]}
+    pb_session.delete_post(**params)
     print("Bookmark deleted")
 
 
-def process_roten_links(roten_links):
+def convert_bookmark_time_to_iso(bookmark_time):
+    bookmark_dt = datetime.strptime(bookmark_time, "%Y-%m-%dT%H:%M:%SZ")
+    return bookmark_dt.strftime("%Y%m%d")
+
+
+def process_roten_links(roten_links, pb_session):
     """Process the roten links for deletion, or for updating the link with an
     archive.org snapshot."""
     for bookmark in roten_links:
-        timestamp = bookmark.time.strftime("%Y%m%d")
-        url = bookmark.url
-        description = bookmark.description
+        timestamp = convert_bookmark_time_to_iso(bookmark["time"])
+        url = bookmark["href"]
+        description = bookmark["description"]
         url_request = "https://archive.org/wayback/available?"\
             f"url={url}&timestamp={timestamp}"
         request = requests.get(url_request, headers=HEADERS)
@@ -77,13 +94,13 @@ def process_roten_links(roten_links):
                            f"({url}). Do you want to update "
                            "your bookmark? (y/N)")
             if answer == "y":
-                update_archive_link(bookmark, ia_url)
+                update_archive_link(bookmark, ia_url, pb_session)
         else:
             answer = input(f"Internet archive not available for {description}"
                            f"({url}). Do you want to delete "
                            "your bookmark? (y/N)")
             if answer == "y":
-                remove_bookmark(bookmark)
+                remove_bookmark(bookmark, pb_session)
 
 
 def main():
@@ -92,9 +109,9 @@ def main():
     parser = create_main_parser()
     args = parser.parse_args()
 
-    pb_session = pinboard.Pinboard(args.token)
+    pb_session = pinboard_api.PinboardAPI(args.token)
     print("Fetching bookmarks...")
-    all_posts = pb_session.posts.all()
+    all_posts = pb_session.get_all_posts()
     print("Analyzing bookmarks...")
     with Pool(4) as pool:
         analysis_result = list(tqdm(pool.imap(check_link, all_posts),
@@ -102,4 +119,4 @@ def main():
     roten_links = list(filter(None, analysis_result))
     print(f"link rot: {len(roten_links)/len(all_posts)*100}."
           f"{len(roten_links)}/{len(all_posts)}")
-    process_roten_links(roten_links)
+    process_roten_links(roten_links, pb_session)
