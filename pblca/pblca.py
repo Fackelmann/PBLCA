@@ -5,13 +5,12 @@ update them with an archive.org link or delete them.
 import argparse
 from datetime import datetime
 import json
-from copy import deepcopy
 from multiprocessing import Pool
 
 import requests
-from tqdm import tqdm
-
-from pblca import pinboard_api
+from tqdm import tqdm # type: ignore
+from typing import List, Optional
+from pblca.pinboard_api import PinboardAPI
 
 # We need an user agent so some HTTP servers are nice to us and let us in
 HEADERS = {"User-Agent":
@@ -19,7 +18,7 @@ HEADERS = {"User-Agent":
            "Gecko/20100101 Firefox/79.0"}
 
 
-def create_main_parser():
+def create_main_parser() -> argparse.ArgumentParser:
     """ Parser for CLI arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument("-t",
@@ -29,7 +28,7 @@ def create_main_parser():
     return parser
 
 
-def check_link(post):
+def check_link(post: dict) -> Optional[dict]:
     """Checks if whether link is dead or not."""
     try:
         request = requests.get(post["href"], timeout=10, headers=HEADERS)
@@ -41,7 +40,7 @@ def check_link(post):
     return None
 
 
-def create_add_parameters_from_bookmark(bookmark):
+def create_add_parameters_from_bookmark(bookmark: dict) -> dict:
     params = {}
     params["url"] = bookmark["href"]
     params["description"] = bookmark["description"]
@@ -53,7 +52,9 @@ def create_add_parameters_from_bookmark(bookmark):
     return params
 
 
-def update_archive_link(bookmark, ia_url, pb_session):
+def update_archive_link(bookmark: dict,
+                        ia_url: str,
+                        pb_session: PinboardAPI) -> None:
     """Updates the link of a current bookmark to direct to the closest snapshot
     available in archive.org."""
     old_bookmark_url = bookmark["href"]
@@ -65,19 +66,19 @@ def update_archive_link(bookmark, ia_url, pb_session):
     print("Bookmark updated")
 
 
-def remove_bookmark(bookmark, pb_session):
+def remove_bookmark(bookmark: dict, pb_session: PinboardAPI) -> None:
     """Delete bookmark."""
     params = {"url": bookmark["href"]}
     pb_session.delete_post(**params)
     print("Bookmark deleted")
 
 
-def convert_bookmark_time_to_iso(bookmark_time):
+def convert_bookmark_time_to_iso(bookmark_time: str) -> str:
     bookmark_dt = datetime.strptime(bookmark_time, "%Y-%m-%dT%H:%M:%SZ")
     return bookmark_dt.strftime("%Y%m%d")
 
 
-def process_roten_links(roten_links, pb_session):
+def process_roten_links(roten_links: list, pb_session: PinboardAPI) -> None:
     """Process the roten links for deletion, or for updating the link with an
     archive.org snapshot."""
     for bookmark in roten_links:
@@ -103,20 +104,20 @@ def process_roten_links(roten_links, pb_session):
                 remove_bookmark(bookmark, pb_session)
 
 
-def main():
+def main() -> None:
     """Main function. Parse arguments, call a pool of
     processes, yada, yada, yada."""
     parser = create_main_parser()
     args = parser.parse_args()
 
-    pb_session = pinboard_api.PinboardAPI(args.token)
+    pb_session = PinboardAPI(args.token)
     print("Fetching bookmarks...")
     all_posts = pb_session.get_all_posts()
     print("Analyzing bookmarks...")
     with Pool(4) as pool:
         analysis_result = list(tqdm(pool.imap(check_link, all_posts),
                                     total=len(all_posts)))
-    roten_links = list(filter(None, analysis_result))
+    roten_links: List[dict] = list(filter(None, analysis_result))
     print(f"link rot: {len(roten_links)/len(all_posts)*100}."
           f"{len(roten_links)}/{len(all_posts)}")
     process_roten_links(roten_links, pb_session)

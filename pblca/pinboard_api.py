@@ -33,7 +33,7 @@ class PinboardAPI:
             raise APIInitializationException("Cannot initialize Pinboard:"
                                              f"{e}")
 
-    def _api_call(self, method: str, **params: str) -> Dict[str, str]:
+    def _api_call(self, method: str, **params: str) -> dict:
         params["auth_token"] = self.token
         params["format"] = "json"
         response = requests.get(f"{self.PINBOARD_API_ENDPOINT}{method}",
@@ -44,22 +44,22 @@ class PinboardAPI:
             raise APIAccessException("Cannot access Pinboard"
                                      f"status code ={response.status_code}")
 
-    def get_update(self) -> Dict[str, str]:
+    def get_update(self) -> dict:
         """Returns the most recent tima a bookmark was added, updated,
         or deleted.
         :returns: dictionary containing key "update time" """
         return self._api_call("/posts/update")
 
-    def get_recent_posts(self) -> Dict[str, str]:
+    def get_recent_posts(self) -> dict:
         """Returns the most recent time a bookmark was added, updated,
         or deleted."""
         return self._api_call("/posts/recent")
 
-    def get_all_posts(self) -> Dict[str, str]:
+    def get_all_posts(self) -> dict:
         """Returns all bookmarks in the user's account."""
         return self._api_call("/posts/all")
 
-    def add_post(self, **params: str) -> Dict[str, str]:
+    def add_post(self, **params: str) -> dict:
         """Adds a bookmark."""
         return self._api_call("/posts/add", **params)
 
