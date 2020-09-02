@@ -1,21 +1,14 @@
-from typing import Dict
-
+"""Basic Pinboard API"""
 import json
-import logging
 import requests
-
-FORMAT = "[%(levelname)s - %(asctime)s %(filename)s:%(lineno)s -"\
-    "%(funcName)20s()] %(message)s"
-
-logging.basicConfig(format=FORMAT, filename="pblca.log", level=logging.INFO)
 
 
 class APIAccessException(Exception):
-    pass
+    """Custom exception. Error accessing Pinboard API"""
 
 
 class APIInitializationException(Exception):
-    pass
+    """Custom Exception. Cannot initialize instance and connect to Pinboard"""
 
 
 class PinboardAPI:
@@ -29,9 +22,9 @@ class PinboardAPI:
         self.token = token
         try:
             self.get_update()
-        except APIAccessException as e:
+        except APIAccessException as exception:
             raise APIInitializationException("Cannot initialize Pinboard:"
-                                             f"{e}")
+                                             f"{exception}")
 
     def _api_call(self, method: str, **params: str) -> dict:
         params["auth_token"] = self.token
@@ -40,9 +33,8 @@ class PinboardAPI:
                                 params=params)
         if response.status_code == 200:
             return json.loads(response.content)
-        else:
-            raise APIAccessException("Cannot access Pinboard"
-                                     f"status code ={response.status_code}")
+        raise APIAccessException("Cannot access Pinboard"
+                                 f"status code ={response.status_code}")
 
     def get_update(self) -> dict:
         """Returns the most recent tima a bookmark was added, updated,

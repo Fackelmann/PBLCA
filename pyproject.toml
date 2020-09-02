@@ -6,7 +6,6 @@ authors = ["contact@danielgplaza.com"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pinboard = "^2.1.8"
 requests = "^2.24.0"
 tqdm = "^4.48.2"
 mypy = "^0.782"

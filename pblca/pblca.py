@@ -2,14 +2,15 @@
 Checks for dead links in your Pinboard bookmarks and provides the option to
 update them with an archive.org link or delete them.
 """
-import argparse
 from datetime import datetime
-import json
-from multiprocessing import Pool
-
-import requests
-from tqdm import tqdm # type: ignore
 from typing import List, Optional
+from multiprocessing import Pool
+import argparse
+import json
+import requests
+
+from tqdm import tqdm   # type: ignore
+
 from pblca.pinboard_api import PinboardAPI
 
 # We need an user agent so some HTTP servers are nice to us and let us in
@@ -34,13 +35,14 @@ def check_link(post: dict) -> Optional[dict]:
         request = requests.get(post["href"], timeout=10, headers=HEADERS)
         if request.status_code != 200:
             return post
-    except Exception as e:
-        print(f"Exception {e} at post {post}")
+    except Exception as exception:
+        print(f"Exception {exception} at post {post}")
         return post
     return None
 
 
 def create_add_parameters_from_bookmark(bookmark: dict) -> dict:
+    """Creates new parameters from bookmark."""
     params = {}
     params["url"] = bookmark["href"]
     params["description"] = bookmark["description"]
@@ -74,6 +76,7 @@ def remove_bookmark(bookmark: dict, pb_session: PinboardAPI) -> None:
 
 
 def convert_bookmark_time_to_iso(bookmark_time: str) -> str:
+    """Converts Pinboard dt to YearMonthDay iso date."""
     bookmark_dt = datetime.strptime(bookmark_time, "%Y-%m-%dT%H:%M:%SZ")
     return bookmark_dt.strftime("%Y%m%d")
 

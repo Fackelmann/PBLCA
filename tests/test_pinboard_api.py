@@ -1,17 +1,16 @@
-import pytest # type: ignore
-from pblca import pinboard_api
+from tests import config
 
-VALID_TOKEN = "Fackelmann:684F2A20A02C40B69970"
-INVALID_TOKEN = "FAKE:NONE"
+import pytest  # type: ignore
+from pblca import pinboard_api
 
 
 def test_pinboard_invalid_token() -> None:
     with pytest.raises(pinboard_api.APIInitializationException):
-        pinboard_api.PinboardAPI(INVALID_TOKEN)
+        pinboard_api.PinboardAPI(config.INVALID_TOKEN)
 
 
 def test_get_all_posts() -> None:
-    pb = pinboard_api.PinboardAPI(VALID_TOKEN)
+    pb = pinboard_api.PinboardAPI(config.VALID_TOKEN)
     try:
         pb.get_all_posts()
     except pinboard_api.APIAccessException as e:
@@ -21,7 +20,7 @@ def test_get_all_posts() -> None:
 def test_add_and_delete() -> None:
     post = {"url": "https://test_address.com",
             "description": "test bookmark"}
-    pb = pinboard_api.PinboardAPI(VALID_TOKEN)
+    pb = pinboard_api.PinboardAPI(config.VALID_TOKEN)
     params = {"url": "https://test_address.com"}
     response = pb.get_post(**params)["posts"]
     assert len(pb.get_post(**params)["posts"]) == 0
