@@ -32,11 +32,32 @@ If you don't have poetry installed, you'll need to install it first:
 pip3 install poetry
 ```
 
+## Testing
+To run pytest, go to the top level directory and run:
+
+```
+make pytest
+```
+
+and
+
+```
+make mypy
+```
+
+You will need to create `config.py` under `tests` with your Pinboard API token:
+
+config.py
+```
+VALID_TOKEN = USERNAME:TOKEN
+INVALID_TOKEN = AN_INVALID:TOKEN
+```
+
 ## TODO
 - [ ] Add options for batch processing
 
 ## Known issues
-- There is no real way to update a bookmark via the Pinboard API, as the URL is the key. PBLCA will create a new bookmark with the same attributes (including creation date), and delete the old one.
+- There is no real way to update a bookmark via the Pinboard API, as the URL is the key. PBLCA will create a new bookmark with the same attributes (including creation date), and delete the old one. Not a real issue from a functionality perspective, but worth mentioning.
 - A (very) few bookmarks will show up as dead even though you can still access the page with your browser. It seems to be an issue with the headers.
 
 ## Disclaimer
